@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sentiment Analysis Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;700&display=swap');
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 1.2s ease;
+        }
+        .slide-up {
+            animation: slideUp 1s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .emoji-bounce {
+            display: inline-block;
+            animation: bounceEmoji 1.2s infinite;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(60px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounceEmoji {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px) scale(1.2); }
+        }
+        @keyframes buttonPulse {
+            0%, 100% { box-shadow: 0 0 0 0 #1da1f2; }
+            50% { box-shadow: 0 0 16px 4px #1da1f2; }
+        }
+        @keyframes navSlide {
+            0% { opacity: 0; transform: translateY(-40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        header {
+            background: #000;
+            padding: 24px 0 16px 0;
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #1da1f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .x-logo {
+            width: 40px;
+            height: 40px;
+            background: url('https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg') no-repeat center/contain;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        /* Dynamic Navbar */
+        .navbar {
+            background: #16181c;
+            padding: 0;
+            margin: 0;
+            border-bottom: 1px solid #23272f;
+            box-shadow: 0 2px 8px rgba(30, 161, 242, 0.08);
+            animation: navSlide 1s ease;
+        }
+        .navbar-list {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar-item {
+            position: relative;
+        }
+        .navbar-link {
+            color: #1da1f2;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 18px 0;
+            display: block;
+            transition: color 0.2s, background 0.2s;
+        }
+        .navbar-link:hover {
+            color: #fff;
+            background: linear-gradient(90deg, #1da1f2 0%, #0a8cff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .navbar-indicator {
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 0;
+            height: 3px;
+            background: #1da1f2;
+            border-radius: 2px;
+            transition: width 0.3s, left 0.3s;
+        }
+        .navbar-link.active + .navbar-indicator {
+            width: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .container {
+            padding: 32px 0;
+            max-width: 700px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .card {
+            background: #16181c;
+            padding: 24px;
+            border-radius: 18px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 16px rgba(30, 161, 242, 0.08);
+            border: 1px solid #23272f;
+            transition: box-shadow 0.3s, transform 0.3s;
+            animation: fadeIn 1.2s ease;
+        }
+        .card:hover {
+            box-shadow: 0 8px 32px rgba(30, 161, 242, 0.18);
+            transform: scale(1.02);
+        }
+        input, textarea {
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 8px;
+            border: 1px solid #23272f;
+            background: #23272f;
+            color: #fff;
+            font-size: 1rem;
+            width: 100%;
+        }
+        button {
+            background: linear-gradient(90deg, #1da1f2 0%, #0a8cff 100%);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 12px 32px;
+            border-radius: 8px;
+            border: none;
+            margin-top: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            animation: buttonPulse 2s infinite;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #0a8cff 0%, #1da1f2 100%);
+        }
+        .tweet-box {
+            background: #23272f;
+            border-left: 5px solid #1da1f2;
+            padding: 16px;
+            margin-top: 16px;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            animation: slideUp 1s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .result {
+            margin-top: 16px;
+            padding: 12px;
+            background: #16181c;
+            border-radius: 10px;
+            border: 1px solid #23272f;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background: #23272f;
+            margin: 24px 0;
+        }
+        h2, h3, h4 {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        .emoji {
+            font-size: 1.5rem;
+            vertical-align: middle;
+            animation: bounceEmoji 1.2s infinite;
+        }
+        /* Responsive */
+        @media (max-width: 800px) {
+            .container { max-width: 98vw; }
+            .navbar-list { gap: 12px; }
+        }
+        @media (max-width: 500px) {
+            header { font-size: 1.2rem; }
+            .x-logo { width: 28px; height: 28px; }
+            .card { padding: 12px; border-radius: 10px; }
+        }
+    </style>
+        @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;700&display=swap');
+        /* Farmer Motion-inspired Animations */
+        .fade-in {
+            animation: fadeIn 1.2s ease;
+        }
+        .slide-up {
+            animation: slideUp 1s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .emoji-bounce {
+            display: inline-block;
+            animation: bounceEmoji 1.2s infinite;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(60px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounceEmoji {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px) scale(1.2); }
+        }
+        @keyframes buttonPulse {
+            0%, 100% { box-shadow: 0 0 0 0 #1da1f2; }
+            50% { box-shadow: 0 0 16px 4px #1da1f2; }
+        }
+        button {
+            animation: buttonPulse 2s infinite;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;700&display=swap');
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        header {
+            background: #000;
+            padding: 24px 0 16px 0;
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #1da1f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .x-logo {
+            width: 40px;
+            height: 40px;
+            background: url('https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg') no-repeat center/contain;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        nav {
+            background: #16181c;
+            padding: 12px 0;
+            text-align: center;
+            border-bottom: 1px solid #23272f;
+        }
+        nav a {
+            color: #1da1f2;
+            text-decoration: none;
+            margin: 0 18px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: color 0.2s;
+        }
+        nav a:hover {
+            color: #fff;
+        }
+        .container {
+            padding: 32px 0;
+            max-width: 700px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .card {
+            background: #16181c;
+            padding: 24px;
+            border-radius: 18px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 16px rgba(30, 161, 242, 0.08);
+            border: 1px solid #23272f;
+            transition: box-shadow 0.3s, transform 0.3s;
+            animation: fadeIn 1.2s ease;
+        }
+        .card:hover {
+            box-shadow: 0 8px 32px rgba(30, 161, 242, 0.18);
+            transform: scale(1.02);
+        }
+        input, textarea {
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 8px;
+            border: 1px solid #23272f;
+            background: #23272f;
+            color: #fff;
+            font-size: 1rem;
+            width: 100%;
+        }
+        button {
+            background: linear-gradient(90deg, #1da1f2 0%, #0a8cff 100%);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 12px 32px;
+            border-radius: 8px;
+            border: none;
+            margin-top: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #0a8cff 0%, #1da1f2 100%);
+        }
+        .tweet-box {
+            background: #23272f;
+            border-left: 5px solid #1da1f2;
+            padding: 16px;
+            margin-top: 16px;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            animation: slideUp 1s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .result {
+            margin-top: 16px;
+            padding: 12px;
+            background: #16181c;
+            border-radius: 10px;
+            border: 1px solid #23272f;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background: #23272f;
+            margin: 24px 0;
+        }
+        h2, h3, h4 {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        .emoji {
+            font-size: 1.5rem;
+            vertical-align: middle;
+            animation: bounceEmoji 1.2s infinite;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <span class="x-logo"></span>
+    Twitter Sentiment Analysis Dashboard 🚀
+</header>
+
+<nav class="navbar">
+    <ul class="navbar-list">
+        <li class="navbar-item">
+            <a href="/" class="navbar-link">🏠 Home</a>
+            <span class="navbar-indicator"></span>
+        </li>
+        <li class="navbar-item">
+            <a href="/search" class="navbar-link">🔍 Search Tweet</a>
+            <span class="navbar-indicator"></span>
+        </li>
+        <li class="navbar-item">
+            <a href="/emotion" class="navbar-link">😊 Emotion Page</a>
+            <span class="navbar-indicator"></span>
+        </li>
+        <li class="navbar-item">
+            <a href="/comparison" class="navbar-link">📊 Compare 2020 vs 2021</a>
+            <span class="navbar-indicator"></span>
+        </li>
+        <li class="navbar-item">
+            <a href="/upload" class="navbar-link">📂 Upload Dataset</a>
+            <span class="navbar-indicator"></span>
+        </li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div class="card fade-in">
+        <h2 class="slide-up">✍️ Analyze a Tweet</h2>
+        <form method="POST" action="/predict">
+            <textarea name="text" rows="3" placeholder="Type your tweet here..."></textarea><br>
+            <button type="submit" class="slide-up">🚀 Analyze</button>
+        </form>
+    </div>
+
+    {% if prediction %}
+    <div class="card fade-in">
+        <h3 class="slide-up">📌 Analysis Result</h3>
+        <div class="tweet-box slide-up">
+            <strong>📝 Tweet:</strong> {{ text }}
+        </div>
+        <div class="result slide-up">
+            <p><span class="emoji emoji-bounce">💬</span> Sentiment: <strong>{{ prediction }}</strong></p>
+            <p><span class="emoji emoji-bounce">😏</span> Sarcasm: <strong>{{ sarcasm }}</strong></p>
+            <p><span class="emoji emoji-bounce">🎭</span> Emotion: <strong>{{ emotion }}</strong></p>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if tweets %}
+    <div class="card fade-in">
+        <h3 class="slide-up">📜 Tweet Results</h3>
+        {% for tweet in tweets %}
+        <div class="tweet-box slide-up">
+            <p><strong>📝 Tweet:</strong> {{ tweet.text }}</p>
+            <p><span class="emoji emoji-bounce">💬</span> Sentiment: {{ tweet.sentiment }}</p>
+            <p><span class="emoji emoji-bounce">😏</span> Sarcasm: {{ tweet.sarcasm }}</p>
+            <p><span class="emoji emoji-bounce">🎭</span> Emotion: {{ tweet.emotion }}</p>
+        </div>
+        <hr>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if comparison %}
+    <div class="card fade-in">
+        <h3 class="slide-up">📊 Dataset Comparison (2020 vs 2021)</h3>
+        <div class="tweet-box slide-up">
+            <h4>📅 2020 Results</h4>
+            <p><span class="emoji emoji-bounce">😊</span> Positive: {{ comparison.year1.positive }}</p>
+            <p><span class="emoji emoji-bounce">😡</span> Negative: {{ comparison.year1.negative }}</p>
+            <p><span class="emoji emoji-bounce">😐</span> Neutral: {{ comparison.year1.neutral }}</p>
+        </div>
+        <div class="tweet-box slide-up">
+            <h4>📅 2021 Results</h4>
+            <p><span class="emoji emoji-bounce">😊</span> Positive: {{ comparison.year2.positive }}</p>
+            <p><span class="emoji emoji-bounce">😡</span> Negative: {{ comparison.year2.negative }}</p>
+            <p><span class="emoji emoji-bounce">😐</span> Neutral: {{ comparison.year2.neutral }}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+    <!-- Floating Chatbot Button -->
+    <div id="chatbot-btn" style="position:fixed;bottom:32px;right:32px;z-index:9999;">
+        <button onclick="openChatbot()" style="background:#fff;border:none;border-radius:50%;box-shadow:0 4px 16px rgba(56,189,248,0.18);width:64px;height:64px;display:flex;align-items:center;justify-content:center;transition:box-shadow 0.3s,transform 0.3s;cursor:pointer;">
+            <span style="background:url('https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg') no-repeat center/contain;width:40px;height:40px;display:inline-block;"></span>
+        </button>
+    </div>
+    <!-- Chatbot Modal -->
+    <div id="chatbot-modal" style="display:none;position:fixed;bottom:100px;right:40px;width:400px;height:600px;max-width:90vw;max-height:80vh;z-index:10000;background:#fff;border-radius:18px;box-shadow:0 8px 32px rgba(56,189,248,0.18);overflow:hidden;transition:opacity 0.4s,transform 0.4s;">
+        <iframe src="https://tweet-insight.vercel.app/" width="100%" height="100%" frameborder="0" style="border:none;"></iframe>
+        <button onclick="closeChatbot()" style="position:absolute;top:8px;right:8px;background:#38bdf8;border:none;border-radius:50%;width:32px;height:32px;color:#fff;font-size:1.2rem;cursor:pointer;">&times;</button>
+    </div>
+    <script>
+        function openChatbot() {
+            var modal = document.getElementById('chatbot-modal');
+            modal.style.display = 'block';
+            modal.style.opacity = 1;
+            modal.style.transform = 'translateY(0) scale(1)';
+        }
+        function closeChatbot() {
+            var modal = document.getElementById('chatbot-modal');
+            modal.style.opacity = 0;
+            modal.style.transform = 'translateY(40px) scale(0.95)';
+            setTimeout(function(){ modal.style.display = 'none'; }, 400);
+        }
+        // Smooth transition on modal
+        document.getElementById('chatbot-modal').style.transition = 'opacity 0.4s, transform 0.4s';
+    </script>
+</body>
+</html>
